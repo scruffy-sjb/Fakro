@@ -344,7 +344,6 @@ def updated() {
         state.updatedLastRanAt = new Date().time
         unschedule(refresh)
         unschedule(poll)
-        runIn (01, configure)
         sendEvent(name: "refreshRate", value: refreshRate)
 		
 		switch(refreshRate) {
