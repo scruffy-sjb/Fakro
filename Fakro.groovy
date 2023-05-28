@@ -16,7 +16,8 @@
  ***************************Version 1.0******************************************
  *  Version History
  *
- *  2021-08-28: Version 1.0 Initial release
+ *  2021-09-19: Version 1.0 Initial release
+ *  2023-05-28: Version 1.1 - added automatic refresh after a command is sent and set preferences after configure is called
  *
 */
 
@@ -335,6 +336,7 @@ def configure() {
     sendEvent(name: "configuration", value: "sent", displayed: true)
     log.info "Configuration sent"
     secureSequence(cmds)    
+    updated()
 }
 
 def updated() {
@@ -584,20 +586,27 @@ def close() {
 	setLevel(0)  
 }
 
+def setPosition(level) {
+    log.trace("Changing Position")
+    int newLevel=2.55*level
+    setLevel(newLevel)
+}
+
 def setLevel(level) {
-	log.trace "SetPosition value:${level}"
+	log.trace "setPosition value:${level}"
     def cmds = []
 	cmds << zwave.basicV1.basicSet(value: level) 
     cmds <<	zwave.switchMultilevelV3.switchMultilevelGet()    
     secureSequence (cmds)
+    runIn1Minute(poll)
 }
 
-String startLevelChange(direction){
+String startPositionChange(direction){
     Integer upDown = direction == "down" ? 1 : 0
     return secure(zwave.switchMultilevelV1.switchMultilevelStartLevelChange(upDown: upDown, ignoreStartLevel: 1, startLevel: 0))
 }
 
-List<String> stopLevelChange(){
+List<String> stopPositionChange(){
     return [
             secure(zwave.switchMultilevelV1.switchMultilevelStopLevelChange())
             ,"delay 200"
